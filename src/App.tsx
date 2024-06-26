@@ -2,9 +2,11 @@ import { Outlet, RouterProvider, createBrowserRouter } from "react-router-dom";
 import "./App.css";
 import NavBar from "./components/NavBar";
 import { useState } from "react";
+import LoginComponent from "./components/LoginComponent";
+import { AuthService } from "./services/AuthService";
 
+const authService = new AuthService();
 function App() {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [userName, setUserName] = useState<string | undefined>(undefined);
 
   const router = createBrowserRouter([
@@ -22,7 +24,7 @@ function App() {
         },
         {
           path: "/login",
-          element: <div>Hello world!</div>,
+          element: <LoginComponent authService={authService} setUserNameCb={setUserName} />,
         },
         {
           path: "/profile",
