@@ -4,8 +4,12 @@ import NavBar from "./components/NavBar";
 import { useState } from "react";
 import LoginComponent from "./components/LoginComponent";
 import { AuthService } from "./services/AuthService";
+import { DataService } from "./services/DataService";
+import CreateSpace from "./components/spaces/CreateSpace";
 
 const authService = new AuthService();
+const dataService = new DataService(authService);
+
 function App() {
   const [userName, setUserName] = useState<string | undefined>(undefined);
 
@@ -28,11 +32,16 @@ function App() {
         },
         {
           path: "/profile",
-          element: <div>Profile page</div>,
+          element: (
+            <div>
+              <h1>Profile page</h1>
+              <button onClick={() => authService.logout()}>Sign Out</button>
+            </div>
+          ),
         },
         {
           path: "/createSpace",
-          element: <div>Hello world!</div>,
+          element: <CreateSpace dataService={dataService} />,
         },
         {
           path: "/spaces",
