@@ -39,25 +39,29 @@ export class AuthService {
   private user: AuthUser | undefined;
   public jwtToken: string | undefined;
   private temporaryCredentials: object | undefined;
-  
+
+  public isAuthorized() {
+    return this.user ? true : false;
+  }
+
   public async login(username: string, password: string): Promise<object | undefined> {
     try {
-        const response = await signIn({ username, password });
-        if(response.isSignedIn){
-            this.user = await getCurrentUser();
-            this.setJwtIdToken();
-            return this.user;
-        }
+      const response = await signIn({ username, password });
+      if (response.isSignedIn) {
+        this.user = await getCurrentUser();
+        this.setJwtIdToken();
+        return this.user;
+      }
     } catch (error) {
-        console.log(error);
-        return undefined;
+      console.log(error);
+      return undefined;
     }
     return {
       user: "abc",
     };
   }
 
-  public async logout(){
+  public async logout() {
     await signOut({ global: true });
   }
 
@@ -65,33 +69,33 @@ export class AuthService {
     return this.user?.username;
   }
 
-  public async getTemporaryCredentails(){
-    if(this.temporaryCredentials){
+  public async getTemporaryCredentails() {
+    if (this.temporaryCredentials) {
       return this.temporaryCredentials;
     }
     this.temporaryCredentials = await this.generateTemporaryCredentials();
     return this.temporaryCredentials;
   }
 
-  private async generateTemporaryCredentials(){
+  private async generateTemporaryCredentials() {
     const cognitoIdentityPool = `cognito-idp.${awsRegion}.amazonaws.com/${AuthStack.SpaceUserPoolId}`;
     const cognitoIdentity = new CognitoIdentityClient({
       credentials: fromCognitoIdentityPool({
         clientConfig: {
-          region: awsRegion
+          region: awsRegion,
         },
         identityPoolId: AuthStack.SpaceIdentityPoolId,
         logins: {
-          [cognitoIdentityPool]: this.jwtToken!
-        }
-      })
+          [cognitoIdentityPool]: this.jwtToken!,
+        },
+      }),
     });
     const credentials = await cognitoIdentity.config.credentials();
     return credentials;
   }
 
-  private async setJwtIdToken(){
-   const tokens = await cognitoUserPoolsTokenProvider.getTokens()
-   this.jwtToken = tokens?.idToken?.toString();
+  private async setJwtIdToken() {
+    const tokens = await cognitoUserPoolsTokenProvider.getTokens();
+    this.jwtToken = tokens?.idToken?.toString();
   }
 }
