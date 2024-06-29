@@ -1,7 +1,14 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { AuthService } from "./AuthService";
-import { DataStack } from "../../../space-finder-cdk/outputs.json";
+import { DataStack, ApiStack } from "../../../space-finder-cdk/outputs.json";
 
+interface Space {
+  name: string;
+  location: string;
+  photoUrl?: string | undefined;
+}
+
+const spacesUrl = ApiStack.SpacesApiEndpoint36C4F3B6 + "spaces";
 export class DataService {
   private authService: AuthService;
   private s3Client: S3Client | undefined;
@@ -10,13 +17,27 @@ export class DataService {
   constructor(authservice: AuthService) {
     this.authService = authservice;
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   public async createSpace(name: string, location: string, photo?: File) {
+    let uploadUrl: string | undefined;
     if (photo) {
-      const uploadUrl = await this.uploadPublicFile(photo);
-      console.log(uploadUrl);
+      uploadUrl = await this.uploadPublicFile(photo);
     }
-    return "bla bla bla";
+    const space: Space = {
+      name,
+      location,
+      photoUrl: uploadUrl,
+    };
+
+    const postResult = await fetch(spacesUrl, {
+      method: 'POST',
+      body: JSON.stringify(space),
+      headers: {
+        'Authorization': this.authService.jwtToken!
+      }
+    });
+    const postResultJSON = await postResult.json();
+    return postResultJSON.id;
   }
 
   private async uploadPublicFile(file: File) {
